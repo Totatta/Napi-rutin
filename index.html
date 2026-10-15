@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c1912">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Reggeli Kupa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: scoreboard header, weather switch, then a left-to-right knockout bracket ending in the "Indulás" final */
+:root{
+  --bg:#eef3ec; --surface:#ffffff; --fg:#13261b; --muted:#647a6c; --line:#c3d1c6;
+  --pitch:#1f7a46; --on-pitch:#ffffff; --gold:#d99a00; --gold-soft:#fff3cf; --lock:#e2e9e3;
+  --shadow:0 1px 2px rgb(19 38 27 / .08), 0 4px 14px rgb(19 38 27 / .06);
+  --display:"Bungee", "Arial Black", Impact, sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0c1912; --surface:#15281d; --fg:#e7f1e9; --muted:#8ea596; --line:#2b4335;
+  --pitch:#2a9c5c; --on-pitch:#ffffff; --gold:#f2bf38; --gold-soft:#3a3214; --lock:#1a2c22;
+  --shadow:0 1px 2px rgb(0 0 0 / .3), 0 4px 14px rgb(0 0 0 / .25); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0c1912; --surface:#15281d; --fg:#e7f1e9; --muted:#8ea596; --line:#2b4335;
+  --pitch:#2a9c5c; --on-pitch:#ffffff; --gold:#f2bf38; --gold-soft:#3a3214; --lock:#1a2c22;
+  --shadow:0 1px 2px rgb(0 0 0 / .3), 0 4px 14px rgb(0 0 0 / .25); color-scheme:dark }
+
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.4}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:16px}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,7vw,42px);line-height:1;margin:0;letter-spacing:.01em}
+h1 span{color:var(--gold)}
+.sub{color:var(--muted);font-weight:700;margin-top:6px}
+.board{display:flex;gap:8px}
+.stat{background:var(--fg);color:var(--bg);border-radius:8px;padding:6px 12px;min-width:74px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-weight:400;font-size:22px;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat small{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.seg{display:inline-flex;background:var(--lock);border-radius:999px;padding:4px;gap:2px}
+.seg button{all:unset;cursor:pointer;padding:7px 12px;border-radius:999px;font-weight:800;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+.seg button:focus-visible,.btn:focus-visible,.card:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn{all:unset;cursor:pointer;font-weight:800;font-size:14px;padding:8px 14px;border-radius:999px;border:2px solid var(--line);color:var(--fg)}
+.btn.warn{border-color:var(--gold);background:var(--gold-soft)}
+
+.hist h2{font-family:var(--display);font-weight:400;font-size:22px;margin:8px 0 6px}
+.hist ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hist li{display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:10px;background:var(--surface);
+  border:1.5px solid var(--line);border-radius:10px;padding:8px 8px 8px 12px;font-weight:700}
+.hist li.best{border-color:var(--gold)}
+.hist .hd{min-width:0;color:var(--muted)}
+.hist .ht{font-family:var(--display);font-weight:400;font-size:18px;font-variant-numeric:tabular-nums}
+.hist .hb{font-size:12px;color:var(--gold);font-weight:900;white-space:nowrap}
+.btn.sm{font-size:12px;padding:5px 10px}
+.progress{height:10px;background:var(--lock);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pitch),var(--gold));transition:width .4s}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);font-size:13px;font-weight:700}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:14px;height:14px;border-radius:4px;display:inline-block}
+.dot.l{background:var(--lock);border:1.5px dashed var(--line)}
+.dot.r{background:var(--surface);border:2px solid var(--gold)}
+.dot.d{background:var(--pitch)}
+
+.scroller{overflow-x:auto;margin-inline:-4px;padding:4px}
+.bracket{position:relative}
+.bracket svg{position:absolute;inset:0;overflow:visible}
+.bracket path{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;transition:stroke .3s}
+.bracket path.lit{stroke:var(--gold);stroke-width:3.5}
+.col-label{position:absolute;top:0;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center}
+
+.card{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 3px;border-radius:10px;
+  font:inherit;font-weight:800;text-align:center;cursor:pointer;border:2px solid transparent;transition:transform .15s, background .25s}
+.card .ic{font-size:19px;line-height:1;flex:none;letter-spacing:-2px}
+.card .tx{display:block;width:100%;overflow:hidden;white-space:nowrap;font-size:var(--fs,14px);line-height:1.2;letter-spacing:-.01em}
+.card.locked{background:var(--lock);color:var(--muted);border:1.5px dashed var(--line)}
+.card.locked .ic{filter:grayscale(1);opacity:.45}
+.card.ready{background:var(--surface);color:var(--fg);border-color:var(--gold);box-shadow:var(--shadow);animation:pulse 1.8s ease-in-out infinite}
+.card.done{background:var(--pitch);color:var(--on-pitch);box-shadow:var(--shadow)}
+.card.done::after{content:"✓";position:absolute;right:-7px;top:-7px;width:20px;height:20px;border-radius:50%;
+  background:var(--gold);color:#1a1300;font-size:12px;font-weight:900;display:grid;place-items:center}
+.card:active{transform:scale(.96)}
+.card.final{border-radius:14px;justify-content:center;font-family:var(--display);font-weight:400}
+
+.card.final.done{background:var(--gold);color:#1a1300}
+.card.pop{animation:pop .5s ease-out}
+.card.unlocked{animation:unlock .7s ease-out, pulse 1.8s ease-in-out .7s infinite}
+.card.shake{animation:shake .35s}
+@keyframes pulse{50%{box-shadow:0 0 0 5px color-mix(in srgb, var(--gold) 30%, transparent)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes unlock{0%{transform:scale(.85);opacity:.4}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom, 0px));transform:translate(-50%,20px);opacity:0;
+  background:var(--fg);color:var(--bg);font-weight:800;padding:10px 16px;border-radius:12px;transition:.25s;pointer-events:none;
+  max-width:calc(100% - 32px);text-align:center;z-index:5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.win{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:rgb(6 14 10 / .72);
+  padding:max(16px, env(safe-area-inset-left, 0px))}
+.win .box{background:var(--surface);color:var(--fg);border-radius:20px;padding:28px 24px;text-align:center;max-width:340px;width:100%;
+  box-shadow:0 20px 60px rgb(0 0 0 / .4);animation:pop .6s ease-out}
+.trophy{font-size:84px;line-height:1;display:inline-block;animation:bounce 1.2s ease-in-out infinite}
+.win h2{font-family:var(--display);font-weight:400;font-size:40px;margin:10px 0 4px;color:var(--gold)}
+.win p{margin:4px 0;font-weight:700;color:var(--muted)}
+.win p b{color:var(--fg);font-variant-numeric:tabular-nums}
+.win .rec{display:inline-block;margin-top:8px;background:var(--gold);color:#1a1300;font-weight:900;padding:4px 12px;border-radius:99px}
+.win .btn{margin-top:18px;background:var(--pitch);color:var(--on-pitch);border-color:var(--pitch);padding:10px 22px}
+@keyframes bounce{50%{transform:translateY(-10px) rotate(-6deg)}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:11}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+</head>
+<body>
+<div class="wrap" lang="hu">
+  <header>
+    <div>
+      <h1>Reggeli <span>Kupa</span></h1>
+      <div class="sub" id="today"></div>
+    </div>
+    <div class="board">
+      <div class="stat"><small>Idő</small><b id="clock">0:00</b></div>
+      <div class="stat"><small>Rekord</small><b id="best">–</b></div>
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="Időjárás" id="weather">
+      <button id="w0" data-w="0">☀️ Meleg</button>
+      <button id="w1" data-w="1">🍂 Hűvös</button>
+      <button id="w2" data-w="2">❄️ Hideg</button>
+    </div>
+    <button class="btn" id="reset">Új nap</button>
+  </div>
+
+  <div>
+    <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot l"></i>Még zárva</span>
+    <span><i class="dot r"></i>Mehet!</span>
+    <span><i class="dot d"></i>Kész, továbbjutott</span>
+  </div>
+
+  <div class="scroller"><div class="bracket" id="bracket"></div></div>
+
+  <section class="hist">
+    <h2>Eredmények</h2>
+    <p class="sub" id="histEmpty">Még nincs befejezett reggel. Ha a Döntő kész, az idő ide kerül.</p>
+    <ol id="hist"></ol>
+  </section>
+
+  <p class="sub" style="margin:0">Koppints egy feladatra, ha megcsináltad. Ha egy meccs mindkét feladata kész, a következő kör feladata megnyílik. Véletlen koppintásnál koppints rá még egyszer.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+<canvas id="confetti" hidden></canvas>
+<div class="win" id="win" hidden>
+  <div class="box" role="dialog" aria-labelledby="winTitle">
+    <div class="trophy">🏆</div>
+    <h2 id="winTitle">NYERTÉL!</h2>
+    <p>Indulásra kész vagy.</p>
+    <p>Idő: <b id="winTime">–</b></p>
+    <div class="rec" id="winRec" hidden>Új rekord!</div>
+    <div><button class="btn" id="winClose">Szuper!</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+// Strict knockout: 8 → 4 → 2 → 1. Every match = two tasks, the winner is the next task.
+// The 'ruha' card changes with the weather (0 meleg, 1 hűvös, 2 hideg).
+const RUHA = [
+  {label:'Cipőhúzás', icon:'👟'},
+  {label:'Felöltözés', icon:'👟🧶🧥'},
+  {label:'Felöltözés', icon:'👟🧥🧢'}];
+const TREE = {id:'indulas',label:'Indulás',icon:'🏁',kids:[
+  {id:'fogmosas',label:'Fogmosás',icon:'🪥',kids:[
+    {id:'arcmosas',label:'Arcmosás',icon:'💦',kids:[
+      {id:'ebredes',label:'Felébredés',icon:'⏰'},
+      {id:'felkeles',label:'Felkelés',icon:'🛏️'}]},
+    {id:'reggeli',label:'Reggeli',icon:'🥣',kids:[
+      {id:'atoltozes',label:'Átöltözés',icon:'👕'},
+      {id:'wc',label:'WC',icon:'🚽'}]}]},
+  {id:'ruha',dyn:true,kids:[
+    {id:'kopeny',label:'Köpeny',icon:'🥼',kids:[
+      {id:'telefon',label:'Telefon',icon:'📱'},
+      {id:'kulcs',label:'Kulcs',icon:'🔑'}]},
+    {id:'vitamin',label:'Vitaminok',icon:'💊',kids:[
+      {id:'kulacs',label:'Kulacs',icon:'💧'},
+      {id:'szendvics',label:'Szendvics',icon:'🥪'}]}]}
+]};
+const COLS = ['1. kör','2. kör','Elődöntő','Döntő'];
+
+const KEY='reggeliKupa:v1', HIST='reggeliKupa:history';
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); };
+function load(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+let st = load(KEY);
+if(!st || st.date!==todayStr()) st = {date:todayStr(), done:[], weather: st?st.weather:1, start:null, finish:null};
+let done = new Set(st.done);
+let hist = load(HIST); if(!Array.isArray(hist)) hist = [];
+let best = null;
+const calcBest = () => { best = hist.length ? Math.min(...hist.map(h=>h.ms)) : null; };
+calcBest();
+const WICON = ['☀️','🍂','❄️'];
+function renderHist(){
+  const ol = $('hist');
+  $('histEmpty').hidden = hist.length > 0;
+  ol.innerHTML = hist.slice().sort((a,b)=>b.id-a.id).map(h => {
+    const d = new Date(h.id).toLocaleDateString('hu-HU',{month:'short',day:'numeric',weekday:'short'});
+    const isBest = h.ms === best;
+    return `<li class="${isBest?'best':''}"><span class="hd">${d}</span><span class="hw">${WICON[h.w]||''}</span>
+      <b class="ht">${fmt(h.ms)}</b><span class="hb">${isBest?'🏆 Rekord':''}</span>
+      <button class="btn sm" data-del="${h.id}" aria-label="${d} ${fmt(h.ms)} törlése">Törlés</button></li>`;
+  }).join('');
+}
+let prevStatus = {};
+const persist = () => { st.done=[...done]; save(KEY, st); };
+
+const $ = id => document.getElementById(id);
+const fmt = ms => { const s=Math.max(0,Math.round(ms/1000)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+$('today').textContent = new Date().toLocaleDateString('hu-HU',{month:'long',day:'numeric',weekday:'long'});
+
+function visible(n){
+  const kids = (n.kids||[]).map(visible);
+  const o = Object.assign({}, n, {kids});
+  if(n.dyn) Object.assign(o, RUHA[st.weather]);
+  return o;
+}
+function status(n){
+  if(done.has(n.id)) return 'done';
+  return n.kids.every(k => done.has(k.id)) ? 'ready' : 'locked';
+}
+
+// ---------- layout + render ----------
+const bracket = $('bracket');
+function render(){
+  const root = visible(TREE);
+  const nodes = [], parentOf = {};
+  let slot = 0, maxDepth = 0;
+  (function walk(n, depth, parent){
+    maxDepth = Math.max(maxDepth, depth);
+    n.depth = depth; if(parent) parentOf[n.id] = parent;
+    n.kids.forEach(k => walk(k, depth+1, n));
+    if(!n.kids.length) n.slot = slot++;
+    else n.slot = (n.kids[0].slot + n.kids[n.kids.length-1].slot) / 2;
+    nodes.push(n);
+  })(root, 0, null);
+
+  const cw = bracket.parentElement.clientWidth - 8;
+  const ncol = maxDepth + 1;
+  const gap = cw < 520 ? 8 : 30;
+  const W = Math.max(76, Math.min(160, Math.floor((cw - gap*(ncol-1)) / ncol)));
+  const H = 60, rowH = 70, top = 22;
+  const totalW = ncol*W + (ncol-1)*gap, totalH = top + slot*rowH;
+  bracket.style.width = totalW+'px'; bracket.style.height = totalH+'px';
+  bracket.style.setProperty('--fs', W < 100 ? '14px' : '16px');
+  const pos = n => ({x:(maxDepth-n.depth)*(W+gap), y: top + n.slot*rowH + (rowH-H)/2});
+
+  let html = '', paths = '';
+  for(let c=0;c<ncol;c++) html += `<div class="col-label" style="left:${c*(W+gap)}px;width:${W}px">${COLS[c+(4-ncol)]||''}</div>`;
+  const newStatus = {};
+  nodes.forEach(n => {
+    const p = pos(n), s = status(n); newStatus[n.id] = s;
+    let cls = 'card '+s + (n.depth===0?' final':'');
+    if(s==='ready' && prevStatus[n.id]==='locked') cls += ' unlocked';
+    if(s==='done' && prevStatus[n.id] && prevStatus[n.id]!=='done') cls += ' pop';
+    const lbl = s==='locked' ? `${n.label}, zárva` : s==='done' ? `${n.label}, kész` : `${n.label}, mehet`;
+    html += `<button class="${cls}" id="c-${n.id}" data-id="${n.id}" aria-label="${lbl}"
+      style="left:${p.x}px;top:${p.y}px;width:${W}px;height:${H}px"><span class="ic">${s==='locked'&&n.kids.length?'🔒':n.icon}</span><span class="tx">${n.label}</span></button>`;
+    const par = parentOf[n.id];
+    if(par){
+      const pp = pos(par);
+      const x1 = p.x+W, y1 = p.y+H/2, x2 = pp.x, y2 = pp.y+H/2, mx = x2 - gap/2;
+      paths += `<path class="${done.has(n.id)?'lit':''}" d="M${x1} ${y1} H${mx} V${y2} H${x2}"/>`;
+    }
+  });
+  bracket.innerHTML = `<svg width="${totalW}" height="${totalH}" aria-hidden="true">${paths}</svg>` + html;
+  fitLabels();
+  prevStatus = newStatus;
+  window._nodes = Object.fromEntries(nodes.map(n=>[n.id,n])); window._parentOf = parentOf;
+
+  const total = nodes.length, d = nodes.filter(n=>done.has(n.id)).length;
+  $('prog').style.width = (100*d/total)+'%';
+  document.querySelectorAll('#weather button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.w===st.weather)));
+  $('best').textContent = best !== null ? fmt(best) : '–';
+  renderHist();
+  tick();
+}
+
+// ---------- interaction ----------
+let toastT;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+
+let actx;
+function beep(freqs, dur=0.12){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{ const o=actx.createOscillator(), g=actx.createGain(); o.type='triangle'; o.frequency.value=f;
+      const t=actx.currentTime+i*dur; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.18,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+dur*1.6);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+dur*1.8); });
+  }catch(e){}
+}
+
+bracket.addEventListener('click', e => {
+  const b = e.target.closest('.card'); if(!b) return;
+  const n = window._nodes[b.dataset.id], s = status(n), par = window._parentOf[n.id];
+  if(s==='locked'){
+    const left = n.kids.filter(k=>!done.has(k.id)).map(k=>k.label);
+    b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+    toast('Előbb ezek kellenek: ' + left.join(', '));
+    return;
+  }
+  if(s==='done'){
+    if(par && done.has(par.id)){ toast('Ez már továbbjutott, nem lehet visszavonni.'); return; }
+    done.delete(n.id);
+    if(n.depth===0){ st.finish=null; if(st.runId){ hist = hist.filter(h=>h.id!==st.runId); save(HIST,hist); calcBest(); st.runId=null; } }
+    persist(); render(); toast(n.label+' visszavonva'); return;
+  }
+  if(!st.start) st.start = Date.now();
+  done.add(n.id);
+  if(n.depth===0){ st.finish = Date.now(); persist(); render(); celebrate(); return; }
+  persist(); render();
+  if(par && status(par)==='ready'){ beep([523,659,784]); toast(par.label+' megnyílt!'); }
+  else beep([660]);
+});
+
+$('weather').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  st.weather = +b.dataset.w; persist(); prevStatus = {}; render();
+});
+
+let resetArm = 0;
+$('reset').addEventListener('click', () => {
+  const b = $('reset');
+  if(Date.now() - resetArm > 3000){ resetArm = Date.now(); b.textContent='Biztos? Koppints újra'; b.classList.add('warn');
+    setTimeout(()=>{ b.textContent='Új nap'; b.classList.remove('warn'); }, 3000); return; }
+  resetArm = 0; b.textContent='Új nap'; b.classList.remove('warn');
+  done = new Set(); st = {date:todayStr(), done:[], weather:st.weather, start:null, finish:null}; persist(); prevStatus={}; render();
+});
+
+function tick(){
+  if(st.start) $('clock').textContent = fmt((st.finish||Date.now()) - st.start);
+  else $('clock').textContent = '0:00';
+}
+setInterval(() => { if(st.start && !st.finish) tick(); if(st.date!==todayStr() && !st.start){ st.date=todayStr(); persist(); } }, 1000);
+
+// ---------- win ----------
+function celebrate(){
+  const t = st.finish - st.start;
+  const rec = best === null || t < best;
+  st.runId = Date.now();
+  hist.push({id:st.runId, ms:t, w:st.weather}); save(HIST, hist); persist(); calcBest();
+  $('winTime').textContent = fmt(t) + ' perc';
+  $('winRec').hidden = !rec;
+  $('win').hidden = false;
+  render();
+  beep([523,659,784,1047,784,1047], .14);
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches) confetti();
+}
+$('winClose').addEventListener('click', () => { $('win').hidden = true; });
+
+const armed = {};
+$('hist').addEventListener('click', e => {
+  const b = e.target.closest('[data-del]'); if(!b) return;
+  const id = +b.dataset.del;
+  if(!armed[id] || Date.now() - armed[id] > 3000){
+    armed[id] = Date.now(); b.textContent = 'Biztos?'; b.classList.add('warn');
+    setTimeout(() => { if(b.isConnected){ b.textContent='Törlés'; b.classList.remove('warn'); } }, 3000); return;
+  }
+  hist = hist.filter(h => h.id !== id); save(HIST, hist); calcBest(); render(); toast('Idő törölve');
+});
+
+function confetti(){
+  const c = $('confetti'), x = c.getContext('2d'); c.hidden = false;
+  const dpr = window.devicePixelRatio||1; c.width = innerWidth*dpr; c.height = innerHeight*dpr; x.scale(dpr,dpr);
+  const cs = getComputedStyle(document.documentElement);
+  const cols = [cs.getPropertyValue('--gold'), cs.getPropertyValue('--pitch'), '#e8433a', '#3a8fe8', '#ffffff'];
+  const P = Array.from({length:180}, () => ({x:innerWidth/2, y:innerHeight*0.45, vx:(Math.random()-.5)*14, vy:-Math.random()*14-4,
+    r:Math.random()*Math.PI, vr:(Math.random()-.5)*.3, w:6+Math.random()*6, h:4+Math.random()*4, c:cols[Math.floor(Math.random()*cols.length)]}));
+  const t0 = performance.now();
+  (function frame(t){
+    x.clearRect(0,0,innerWidth,innerHeight);
+    P.forEach(p => { p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.w/2,-p.h/2,p.w,p.h); x.restore(); });
+    if(t - t0 < 4200) requestAnimationFrame(frame); else { x.clearRect(0,0,innerWidth,innerHeight); c.hidden = true; }
+  })(t0);
+}
+
+// shrink each label until it fits on one line, so nothing is cut or hyphenated
+function fitLabels(){
+  bracket.querySelectorAll('.tx').forEach(el => {
+    el.style.fontSize = '';
+    let fs = parseFloat(getComputedStyle(el).fontSize);
+    while(el.scrollWidth > el.clientWidth + 0.5 && fs > 9){ fs -= 0.5; el.style.fontSize = fs + 'px'; }
+  });
+}
+try{ document.fonts.ready.then(fitLabels); }catch(e){}
+addEventListener('resize', () => render());
+render();
+})();
+</script>
+
+</body>
+</html>
